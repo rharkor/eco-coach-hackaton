@@ -201,14 +201,36 @@ export async function POST(req: Request) {
           description: `récupère les défis de l'utilisateur depuis la base de données.`,
           parameters: z.object({
             userId: z.string().describe("l'identifiant de l'utilisateur"),
+            startDate: z
+              .string()
+              .optional()
+              .describe("date de début au format ISO (inclusif)"),
+            endDate: z
+              .string()
+              .optional()
+              .describe("date de fin au format ISO (inclusif)"),
           }),
-          execute: async ({ userId }) => {
+          execute: async ({ userId, startDate, endDate }) => {
             try {
-              logger.info("Retrieving challenges", { userId });
+              logger.info("Retrieving challenges", {
+                userId,
+                startDate,
+                endDate,
+              });
               const query = db
                 .select()
                 .from(challengeTable)
-                .where(eq(challengeTable.userId, userId));
+                .where(
+                  and(
+                    eq(challengeTable.userId, userId),
+                    startDate
+                      ? gte(challengeTable.createdAt, new Date(startDate))
+                      : undefined,
+                    endDate
+                      ? lte(challengeTable.createdAt, new Date(endDate))
+                      : undefined
+                  )
+                );
               const challenges = await query;
               return challenges;
             } catch (error) {

@@ -9,11 +9,11 @@ import { logger } from "@rharkor/logger";
 
 // Define level thresholds
 const levels = [
-  { level: 1, threshold: 0, title: "Débutant Éco" },
-  { level: 2, threshold: 100, title: "Éco-Curieux" },
-  { level: 3, threshold: 250, title: "Éco-Engagé" },
-  { level: 4, threshold: 500, title: "Éco-Champion" },
-  { level: 5, threshold: 1000, title: "Master Écologique" },
+  { level: 1, threshold: 0, title: "Bébé Bambou" },
+  { level: 2, threshold: 100, title: "Eco-Curieux" },
+  { level: 3, threshold: 250, title: "Ninja du Recyclage" },
+  { level: 4, threshold: 500, title: "Super-Héros du Zéro Déchet" },
+  { level: 5, threshold: 1000, title: "Jedi de la Planète" },
   { level: 6, threshold: 2000, title: "Héros Planétaire" },
 ];
 

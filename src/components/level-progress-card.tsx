@@ -110,7 +110,7 @@ export default function LevelProgressCard() {
 
   return (
     <Card className="w-full max-w-md border shadow-md overflow-hidden bg-white">
-      <CardHeader className="pb-2 border-b">
+      <CardHeader className="py-2 border-b">
         <CardTitle className="text-center text-2xl font-bold">
           Mon Niveau
         </CardTitle>
