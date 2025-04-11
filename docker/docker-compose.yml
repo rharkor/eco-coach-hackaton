@@ -1,0 +1,25 @@
+name: dimension-eco-coach
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres-eco-coach
+    volumes:
+      - postgres-data-eco-coach:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant-eco-coach
+    volumes:
+      - qdrant-data-eco-coach:/qdrant/storage
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+
+volumes:
+  qdrant-data-eco-coach:
+  postgres-data-eco-coach:
