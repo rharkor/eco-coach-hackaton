@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1744359727400,
-      "tag": "0000_typical_hammerhead",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1744364363458,
-      "tag": "0001_workable_mother_askani",
+      "when": 1744364993802,
+      "tag": "0000_solid_goliath",
       "breakpoints": true
     }
   ]

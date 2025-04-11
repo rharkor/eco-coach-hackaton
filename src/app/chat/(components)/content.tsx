@@ -2,9 +2,11 @@
 
 import { MemoizedMarkdown } from "@/components/memoized-markdown";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { useChat } from "@ai-sdk/react";
 
 import ActionCard from "./action-card";
+import ToolInvocations from "./tool-invocations";
 
 export default function Content({
   placeholder,
@@ -29,7 +31,7 @@ export default function Content({
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="gap-4 flex flex-col">
         {messages.length === 0 ? (
           <div className="space-y-4">
             {[doneAction, frequentAction, "Donne moi un nouveau défi"].map(
@@ -44,21 +46,26 @@ export default function Content({
           </div>
         ) : (
           messages.map((m) => (
-            <div key={m.id} className="whitespace-pre-wrap">
-              <div>
-                <div className="font-bold">{m.role}</div>
-                {m.content.length > 0 ? (
+            <div
+              key={m.id}
+              className={cn("space-y-3", {
+                "self-end": m.role === "user",
+              })}
+            >
+              <ToolInvocations
+                toolInvocations={m.parts
+                  .filter((p) => p.type === "tool-invocation")
+                  .map((p) => p.toolInvocation)}
+              />
+              {m.content.length > 0 && (
+                <div
+                  className={cn({
+                    "rounded-large p-2": m.role === "user",
+                  })}
+                >
                   <MemoizedMarkdown id={m.id} content={m.content} />
-                ) : (
-                  <span className="italic font-light">
-                    {"calling tool: " +
-                      m.parts
-                        .filter((p) => p.type === "tool-invocation")
-                        .map((p) => p.toolInvocation.toolName)
-                        .join(", ")}
-                  </span>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           ))
         )}
