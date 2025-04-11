@@ -11,6 +11,8 @@
     "init:qdrant": "tsx lib/db/init-qdrant.ts",
     "drizzle:push": "drizzle-kit push",
     "drizzle:studio": "drizzle-kit studio",
+    "drizzle:generate": "drizzle-kit generate",
+    "drizzle:migrate": "drizzle-kit migrate",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
