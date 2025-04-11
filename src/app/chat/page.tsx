@@ -1,6 +1,9 @@
+import { useState } from "react";
 import Link from "next/link";
 
 import { ChevronLeft } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 
 import Content from "./(components)/content";
 
@@ -30,6 +33,30 @@ const placeholders = [
 ];
 
 export default function Chat() {
+  const [apiResponse, setApiResponse] = useState("");
+
+  const handleSuperEcoloClick = async () => {
+    try {
+      const response = await fetch("/api/super-ecolo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: "super-ecolo" }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de l'appel API");
+      }
+
+      const data = await response.json() as { message: string };
+      setApiResponse(data.message || "Action réussie !");
+    } catch (error) {
+      console.error(error);
+      setApiResponse("Une erreur est survenue.");
+    }
+  };
+
   return (
     <div className="flex flex-col gap-3 h-full">
       <div className="relative flex justify-center items-center">
@@ -37,6 +64,7 @@ export default function Chat() {
           <ChevronLeft />
         </Link>
         <p className="text-2xl font-bold text-center">EcoCoach</p>
+        <Button onClick={handleSuperEcoloClick}>Super Ecolo</Button>
       </div>
       <div className="flex flex-col size-full justify-between gap-3 min-h-0">
         <Content
