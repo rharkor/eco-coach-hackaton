@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+
 import { streamText, tool } from "ai";
 import { z } from "zod";
 
@@ -9,17 +11,18 @@ import { openai } from "@ai-sdk/openai";
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages } = z
-    .object({
-      messages: z.array(z.any()),
-    })
-    .parse(await req.json());
+  try {
+    const { messages } = z
+      .object({
+        messages: z.array(z.any()),
+      })
+      .parse(await req.json());
 
-  const userId = "b8931ee8-1a95-478f-b6a3-8a0b1d257743";
+    const userId = "b8931ee8-1a95-478f-b6a3-8a0b1d257743";
 
-  const result = streamText({
-    model: openai("gpt-4o"),
-    system: `You are a smart assistant specialized in ecology and sustainable development.
+    const result = streamText({
+      model: openai("gpt-4o"),
+      system: `You are a smart assistant specialized in ecology and sustainable development.
     Your role is to raise awareness about environmental issues and encourage users to adopt eco-friendly behaviors.
     Always maintain a friendly, encouraging, and supportive tone in your responses.
     Use tools on every request.
@@ -32,31 +35,38 @@ export async function POST(req: Request) {
     Use reasoning and environmental common sense in all responses.
     Only respond using information retrieved from tool calls.`,
 
-    messages,
-    maxSteps: 3,
-    tools: {
-      addResource: tool({
-        description: `add a resource to your knowledge base. Separate informations in multiple sentences.
+      messages,
+      maxSteps: 3,
+      tools: {
+        addResource: tool({
+          description: `add a resource to your knowledge base. Separate informations in multiple sentences.
             If the user provides a random piece of knowledge unprompted, use this tool without asking for confirmation.`,
-        parameters: z.object({
-          content: z
-            .string()
-            .describe("the content or resource to add to the knowledge base"),
+          parameters: z.object({
+            content: z
+              .string()
+              .describe("the content or resource to add to the knowledge base"),
+          }),
+          execute: async ({ content }) => createResource({ content, userId }),
         }),
-        execute: async ({ content }) => createResource({ content, userId }),
-      }),
-      getInformation: tool({
-        description: `get information from your knowledge base to answer questions.`,
-        parameters: z.object({
-          question: z.string().describe("the users question"),
+        getInformation: tool({
+          description: `get information from your knowledge base to answer questions.`,
+          parameters: z.object({
+            question: z.string().describe("the users question"),
+          }),
+          execute: async ({ question }) => {
+            const relevantContent = await findRelevantContent(question, userId);
+            return relevantContent;
+          },
         }),
-        execute: async ({ question }) => {
-          const relevantContent = await findRelevantContent(question, userId);
-          return relevantContent;
-        },
-      }),
-    },
-  });
+      },
+    });
 
-  return result.toDataStreamResponse();
+    return result.toDataStreamResponse();
+  } catch (error) {
+    console.error("Error in chat route:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }

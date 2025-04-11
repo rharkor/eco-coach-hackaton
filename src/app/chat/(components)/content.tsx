@@ -76,6 +76,7 @@ export default function Content({
               handleSubmit(e);
             }
           }}
+          autoFocus
         />
       </form>
     </>
