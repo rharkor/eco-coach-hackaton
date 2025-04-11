@@ -30,12 +30,6 @@ const initializeQdrant = async () => {
         field_schema: "keyword",
       });
 
-      // Add payload index for resourceId
-      await qdrantClient.createPayloadIndex(COLLECTION_NAME, {
-        field_name: "resourceId",
-        field_schema: "keyword",
-      });
-
       await qdrantClient.createPayloadIndex(COLLECTION_NAME, {
         field_name: "userId",
         field_schema: "keyword",

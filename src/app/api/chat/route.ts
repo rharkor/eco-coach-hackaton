@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 
 import { streamText, tool } from "ai";
+import { and, eq, gte, lte } from "drizzle-orm";
 import { z } from "zod";
 
+import db from "@/db";
+import { actionTable } from "@/db/schemas/action";
 import { createResource } from "@/lib/actions/resources";
 import { findRelevantContent } from "@/lib/ai/embedding";
 import { openai } from "@ai-sdk/openai";
+import { logger } from "@rharkor/logger";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -22,40 +26,102 @@ export async function POST(req: Request) {
 
     const result = streamText({
       model: openai("gpt-4o"),
-      system: `You are a smart assistant specialized in ecology and sustainable development.
-    Your role is to raise awareness about environmental issues and encourage users to adopt eco-friendly behaviors.
-    Always maintain a friendly, encouraging, and supportive tone in your responses.
-    Use tools on every request.
-    Always use the getInformation tool to answer any question.
-    If the user shares personal or ecological information (e.g. habits, commitments, projects), use the addResource tool to store it.
-    If a response requires multiple tools, call them one after another without replying to the user in between.
-    Be concise, clear, and action-oriented. Always encourage ecological action when relevant.
-    You may be creative if the exact information isn't available, but always stay rooted in ecological logic.
-    Strictly follow any tool instructions.
-    Use reasoning and environmental common sense in all responses.
-    Only respond using information retrieved from tool calls.`,
+      system: `Vous êtes un assistant intelligent spécialisé en écologie et en développement durable.
+    Votre rôle est de sensibiliser aux enjeux environnementaux et d'encourager les utilisateurs à adopter des comportements éco-responsables.
+    Adoptez toujours un ton amical, encourageant et bienveillant dans vos réponses.
+    Utilisez les outils à chaque requête.
+    Utilisez toujours l’outil getInformation pour répondre à toute question.
+    Si l'utilisateur partage des informations personnelles ou écologiques (ex : habitudes, engagements, projets), utilisez l’outil addResource pour les enregistrer.
+    Si une réponse nécessite plusieurs outils, appelez-les l’un après l’autre sans répondre à l’utilisateur entre-temps.
+    Soyez concis, clair et orienté vers l’action. Encouragez toujours une action écologique quand c’est pertinent.
+    Vous pouvez faire preuve de créativité si l'information exacte n’est pas disponible, mais restez toujours logique écologiquement.
+    Suivez strictement les instructions des outils.
+    Utilisez votre raisonnement et le bon sens environnemental dans toutes les réponses.
+    Ne répondez qu’en utilisant les informations récupérées via les outils.
 
+    ## Actions
+    Collectez les informations des utilisateurs et utilisez l’outil saveAction pour enregistrer dans la base de données leurs actions écologiques et leur attribuer un score dépendant du gain en kg équivalent CO2.
+    Le score attribué ne doit pas dépasser 200.
+    Par exemple, réduire le chauffage ou la climatisation apporte un gain de 250 à 500 kg eqCO2, ce qui donne un score de 25 à 50.
+    Autre exemple : si l’utilisateur dit qu’il fait sa lessive à l’eau froide, cela correspond à un gain de 10 à 30 kg eqCO2, donc un score de 1 à 3.
+
+    ## Défis
+    Vous pouvez proposer des défis à l’utilisateur. Ces défis leur permettront de gagner des points lorsqu’ils vous indiqueront les avoir relevés.`,
       messages,
       maxSteps: 3,
       tools: {
         addResource: tool({
-          description: `add a resource to your knowledge base. Separate informations in multiple sentences.
-            If the user provides a random piece of knowledge unprompted, use this tool without asking for confirmation.`,
+          description: `ajoute une ressource à votre base de connaissances. Séparez les informations en plusieurs phrases.
+            Si l'utilisateur fournit une information spontanée, utilisez cet outil sans demander de confirmation.`,
           parameters: z.object({
             content: z
               .string()
-              .describe("the content or resource to add to the knowledge base"),
+              .describe(
+                "le contenu ou la ressource à ajouter à la base de connaissances"
+              ),
           }),
-          execute: async ({ content }) => createResource({ content, userId }),
+          execute: async ({ content }) => {
+            logger.info("Creating resource", { content, userId });
+            const resource = await createResource({ content, userId });
+            return resource;
+          },
         }),
         getInformation: tool({
-          description: `get information from your knowledge base to answer questions.`,
+          description: `récupère des informations depuis votre base de connaissances pour répondre aux questions.`,
           parameters: z.object({
-            question: z.string().describe("the users question"),
+            question: z.string().describe("la question de l'utilisateur"),
           }),
           execute: async ({ question }) => {
+            logger.info("Getting information", { question, userId });
             const relevantContent = await findRelevantContent(question, userId);
             return relevantContent;
+          },
+        }),
+        saveAction: tool({
+          description: `enregistre une action sur le profil de l'utilisateur.`,
+          parameters: z.object({
+            action: z.string().describe("l'action à enregistrer"),
+            score: z.number().describe("les points à attribuer"),
+          }),
+          execute: async ({ action, score }) => {
+            logger.info("Saving action", { action, score, userId });
+            await db.insert(actionTable).values({ action, score, userId });
+
+            return "Action enregistrée avec succès";
+          },
+        }),
+        retrieveActions: tool({
+          description: `récupère les actions de l'utilisateur depuis la base de données. Possibilité de filtrer par période.`,
+          parameters: z.object({
+            userId: z.string().describe("l'identifiant de l'utilisateur"),
+            startDate: z
+              .string()
+              .optional()
+              .describe("date de début au format ISO (inclusif)"),
+            endDate: z
+              .string()
+              .optional()
+              .describe("date de fin au format ISO (inclusif)"),
+          }),
+          execute: async ({ userId, startDate, endDate }) => {
+            logger.info("Retrieving actions", { userId, startDate, endDate });
+            const query = db
+              .select()
+              .from(actionTable)
+              .where(
+                and(
+                  eq(actionTable.userId, userId),
+                  startDate
+                    ? gte(actionTable.createdAt, new Date(startDate))
+                    : undefined,
+                  endDate
+                    ? lte(actionTable.createdAt, new Date(endDate))
+                    : undefined
+                )
+              );
+
+            const actions = await query;
+            return actions;
           },
         }),
       },
