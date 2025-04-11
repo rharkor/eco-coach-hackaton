@@ -14,7 +14,8 @@ const levels = [
   { level: 3, threshold: 250, title: "Ninja du Recyclage" },
   { level: 4, threshold: 500, title: "Super-Héros du Zéro Déchet" },
   { level: 5, threshold: 1000, title: "Jedi de la Planète" },
-  { level: 6, threshold: 2000, title: "Héros Planétaire" },
+  { level: 6, threshold: 3000, title: "Héros Planétaire" },
+  { level: 7, threshold: 5000, title: "Héros Intergalactique" },
 ];
 
 async function getUserTotalScore(userId: string) {

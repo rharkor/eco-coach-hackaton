@@ -1,9 +1,10 @@
 import Link from "next/link";
 
+import { MessageSquare } from "lucide-react";
+
 import ActiveChallengesCard from "@/components/active-challenges-card";
 import CO2SavingsCard from "@/components/co2-savings-card";
 import LevelProgressCard from "@/components/level-progress-card";
-import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -16,8 +17,11 @@ export default function Home() {
         <ActiveChallengesCard />
       </div>
 
-      <Link href="/chat">
-        <Button size="lg">Start</Button>
+      <Link
+        href="/chat"
+        className="fixed bottom-3 right-3 rounded-full bg-primary/30 backdrop-blur-sm border border-primary/50 shadow-lg p-4"
+      >
+        <MessageSquare className="size-10 text-primary" />
       </Link>
     </div>
   );

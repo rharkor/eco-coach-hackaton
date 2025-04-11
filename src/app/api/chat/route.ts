@@ -51,12 +51,13 @@ export async function POST(req: Request) {
 
     ## Défis
     Vous pouvez proposer des défis à l'utilisateur. Ces défis leur permettront de gagner des points lorsqu'ils vous indiqueront les avoir relevés.
-    Utilisez l'outil saveChallenge pour enregistrer les défis dans la base de données.
+    Utilisez l'outil saveChallenge pour enregistrer les défis dans la base de données. N'oubliez pas de regarder les défis déjà enregistrés pour ne pas enregistrer des défis identiques.
     
-    ## Sauvegarde mémoire
-    Pensez `,
+    ## Mémoire
+    Pensez à sauvegarder le plus d'informations possible sur l'utilisateur avec addResource.
+    `,
       messages,
-      maxSteps: 5,
+      maxSteps: 10,
       tools: {
         addResource: tool({
           description: `ajoute une ressource à votre base de connaissances. Séparez les informations en plusieurs phrases.
@@ -129,7 +130,6 @@ export async function POST(req: Request) {
         retrieveActions: tool({
           description: `récupère les actions de l'utilisateur depuis la base de données. Possibilité de filtrer par période.`,
           parameters: z.object({
-            userId: z.string().describe("l'identifiant de l'utilisateur"),
             startDate: z
               .string()
               .optional()
@@ -139,9 +139,9 @@ export async function POST(req: Request) {
               .optional()
               .describe("date de fin au format ISO (inclusif)"),
           }),
-          execute: async ({ userId, startDate, endDate }) => {
+          execute: async ({ startDate, endDate }) => {
             try {
-              logger.info("Retrieving actions", { userId, startDate, endDate });
+              logger.info("Retrieving actions", { startDate, endDate });
               const query = db
                 .select()
                 .from(actionTable)
@@ -201,7 +201,6 @@ export async function POST(req: Request) {
         retrieveChallenges: tool({
           description: `récupère les défis de l'utilisateur depuis la base de données.`,
           parameters: z.object({
-            userId: z.string().describe("l'identifiant de l'utilisateur"),
             startDate: z
               .string()
               .optional()
@@ -211,7 +210,7 @@ export async function POST(req: Request) {
               .optional()
               .describe("date de fin au format ISO (inclusif)"),
           }),
-          execute: async ({ userId, startDate, endDate }) => {
+          execute: async ({ startDate, endDate }) => {
             try {
               logger.info("Retrieving challenges", {
                 userId,
@@ -256,6 +255,24 @@ export async function POST(req: Request) {
             } catch (error) {
               logger.error("Error completing challenge", { error });
               return "Erreur lors de la marque du défi comme terminé";
+            }
+          },
+        }),
+        deleteChallenge: tool({
+          description: `supprime un défi de la base de données.`,
+          parameters: z.object({
+            challengeId: z.number().describe("l'identifiant du défi"),
+          }),
+          execute: async ({ challengeId }) => {
+            try {
+              logger.info("Deleting challenge", { challengeId, userId });
+              await db
+                .delete(challengeTable)
+                .where(eq(challengeTable.id, challengeId));
+              return "Défi supprimé avec succès";
+            } catch (error) {
+              logger.error("Error deleting challenge", { error });
+              return "Erreur lors de la suppression du défi";
             }
           },
         }),

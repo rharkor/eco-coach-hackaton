@@ -67,8 +67,9 @@ export default function CO2SavingsCard() {
         <div className="flex flex-col items-center justify-center">
           {loading ? (
             <div className="animate-pulse space-y-4 w-full">
-              <div className="h-12 w-40 bg-white/30 rounded-full mx-auto"></div>
-              <div className="h-4 w-3/4 bg-white/30 rounded-full mx-auto"></div>
+              <div className="h-[48px] w-full bg-white/30 rounded-md mx-auto"></div>
+              <div className="w-full bg-white/30 rounded-md h-[160px] mx-auto"></div>
+              <div className="w-full bg-white/30 rounded-md h-[180px] mx-auto"></div>
             </div>
           ) : (
             <div className="space-y-4 text-center">
@@ -81,7 +82,7 @@ export default function CO2SavingsCard() {
                 </div>
               </div>
               {goodActions && (
-                <div className="mt-4 text-lg font-medium bg-green-800/20 p-3 rounded-lg backdrop-blur-sm flex flex-col gap-1">
+                <div className="mt-4 h-[160px] overflow-y-auto text-lg font-medium bg-green-800/20 p-3 rounded-lg backdrop-blur-sm flex flex-col gap-1">
                   <p className=" text-lg text-start font-semibold underline">
                     Actions les plus impactantes
                   </p>
@@ -91,7 +92,7 @@ export default function CO2SavingsCard() {
                 </div>
               )}
               {nextActions && (
-                <div className="mt-4 text-lg font-medium bg-green-800/20 p-3 rounded-lg backdrop-blur-sm flex flex-col gap-1">
+                <div className="mt-4 h-[180px] overflow-y-auto text-lg font-medium bg-green-800/20 p-3 rounded-lg backdrop-blur-sm flex flex-col gap-1">
                   <p className="text-lg text-start font-semibold underline">
                     Prochaines actions
                   </p>

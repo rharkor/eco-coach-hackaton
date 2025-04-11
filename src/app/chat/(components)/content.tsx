@@ -18,7 +18,7 @@ export default function Content({
   frequentAction: string;
 }) {
   const { messages, input, handleInputChange, handleSubmit, append } = useChat({
-    maxSteps: 3,
+    maxSteps: 10,
     // initialMessages: Array.from({ length: 100 }, (_, i) => ({
     //   role: "user",
     //   content: "Salut",

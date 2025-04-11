@@ -129,7 +129,7 @@ export default function ActiveChallengesCard() {
                     <h3 className="font-semibold text-gray-800">
                       {challenge.name}
                     </h3>
-                    <span className="flex items-center text-sm font-medium bg-white rounded-full px-2 py-0.5 text-gray-700 border">
+                    <span className="flex items-center shrink-0 text-sm font-medium bg-white rounded-full px-2 py-0.5 text-gray-700 border">
                       {challenge.score} pts
                     </span>
                   </div>

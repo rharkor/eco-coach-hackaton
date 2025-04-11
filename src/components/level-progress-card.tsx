@@ -83,6 +83,8 @@ export default function LevelProgressCard() {
         return "bg-amber-200 text-amber-800";
       case 6:
         return "bg-rose-200 text-rose-800";
+      case 7:
+        return "bg-red-200 text-red-800";
       default:
         return "bg-gray-200 text-gray-800";
     }
@@ -103,6 +105,8 @@ export default function LevelProgressCard() {
         return "bg-amber-500";
       case 6:
         return "bg-rose-500";
+      case 7:
+        return "bg-red-500";
       default:
         return "bg-gray-500";
     }
