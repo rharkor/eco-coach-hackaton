@@ -19,10 +19,10 @@ export default function Chat() {
                 ) : (
                   <span className="italic font-light">
                     {"calling tool: " +
-                      (m?.parts
+                      m.parts
                         .filter((p) => p.type === "tool-invocation")
                         .map((p) => p.toolInvocation.toolName)
-                        .join(", ") ?? "unknown")}
+                        .join(", ")}
                   </span>
                 )}
               </p>

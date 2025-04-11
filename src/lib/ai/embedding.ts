@@ -1,6 +1,8 @@
-import { embedMany, embed } from "ai";
+import { embed, embedMany } from "ai";
+
 import { openai } from "@ai-sdk/openai";
-import { qdrantClient } from "../db";
+
+import { qdrantClient } from "../qdrant";
 
 const embeddingModel = openai.embedding("text-embedding-ada-002");
 const COLLECTION_NAME = "embeddings";
@@ -46,7 +48,6 @@ export const findRelevantContent = async (
       must: [{ key: "userId", match: { value: userId } }],
     },
   });
-  console.log("searchResult", searchResult);
 
   return searchResult.map((hit) => ({
     name: hit.payload?.content as string,

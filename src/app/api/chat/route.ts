@@ -1,14 +1,19 @@
+import { streamText, tool } from "ai";
+import { z } from "zod";
+
 import { createResource } from "@/lib/actions/resources";
 import { findRelevantContent } from "@/lib/ai/embedding";
 import { openai } from "@ai-sdk/openai";
-import { streamText, tool } from "ai";
-import { z } from "zod";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
+  const { messages } = z
+    .object({
+      messages: z.array(z.any()),
+    })
+    .parse(await req.json());
 
   const userId = "b8931ee8-1a95-478f-b6a3-8a0b1d257743";
 
@@ -47,18 +52,8 @@ export async function POST(req: Request) {
           question: z.string().describe("the users question"),
         }),
         execute: async ({ question }) => {
-          console.log("question", question);
           const relevantContent = await findRelevantContent(question, userId);
           return relevantContent;
-        },
-      }),
-      getWeather: tool({
-        description: `get the weather for a specific location`,
-        parameters: z.object({
-          location: z.string().describe("the location to get the weather for"),
-        }),
-        execute: async ({ location }) => {
-          return "It is currently 25°c";
         },
       }),
     },

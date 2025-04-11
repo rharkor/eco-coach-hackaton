@@ -1,10 +1,11 @@
+import { logger } from "@rharkor/logger";
+
 import { qdrantClient } from "./index";
-import { env } from "@/lib/env.mjs";
 
 const COLLECTION_NAME = "embeddings";
 
 const initializeQdrant = async () => {
-  console.log("⏳ Initializing Qdrant...");
+  logger.info("⏳ Initializing Qdrant...");
 
   try {
     const collections = await qdrantClient.getCollections();
@@ -14,7 +15,7 @@ const initializeQdrant = async () => {
         (c: { name: string }) => c.name === COLLECTION_NAME
       )
     ) {
-      console.log(`Creating collection: ${COLLECTION_NAME}`);
+      logger.subLog(`Creating collection: ${COLLECTION_NAME}`);
 
       await qdrantClient.createCollection(COLLECTION_NAME, {
         vectors: {
@@ -40,15 +41,15 @@ const initializeQdrant = async () => {
         field_schema: "keyword",
       });
 
-      console.log("✅ Collection created successfully");
+      logger.success("✅ Collection created successfully");
     } else {
-      console.log(`Collection ${COLLECTION_NAME} already exists`);
+      logger.subLog(`Collection ${COLLECTION_NAME} already exists`);
     }
 
-    console.log("✅ Qdrant initialized successfully");
+    logger.success("✅ Qdrant initialized successfully");
   } catch (error) {
-    console.error("❌ Failed to initialize Qdrant");
-    console.error(error);
+    logger.error("❌ Failed to initialize Qdrant");
+    logger.error(error);
     process.exit(1);
   }
 
@@ -56,7 +57,7 @@ const initializeQdrant = async () => {
 };
 
 initializeQdrant().catch((err) => {
-  console.error("❌ Initialization failed");
-  console.error(err);
+  logger.error("❌ Initialization failed");
+  logger.error(err);
   process.exit(1);
 });
