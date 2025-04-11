@@ -30,25 +30,29 @@ export async function POST(req: Request) {
     Votre rôle est de sensibiliser aux enjeux environnementaux et d'encourager les utilisateurs à adopter des comportements éco-responsables.
     Adoptez toujours un ton amical, encourageant et bienveillant dans vos réponses.
     Utilisez les outils à chaque requête.
-    Utilisez toujours l’outil getInformation pour répondre à toute question.
-    Si l'utilisateur partage des informations personnelles ou écologiques (ex : habitudes, engagements, projets), utilisez l’outil addResource pour les enregistrer.
-    Si une réponse nécessite plusieurs outils, appelez-les l’un après l’autre sans répondre à l’utilisateur entre-temps.
-    Soyez concis, clair et orienté vers l’action. Encouragez toujours une action écologique quand c’est pertinent.
-    Vous pouvez faire preuve de créativité si l'information exacte n’est pas disponible, mais restez toujours logique écologiquement.
+    Utilisez toujours l'outil getInformation pour répondre à toute question.
+    Si l'utilisateur partage des informations personnelles ou écologiques (ex : habitudes, engagements, projets), utilisez l'outil addResource pour les enregistrer.
+    Si une réponse nécessite plusieurs outils, appelez-les l'un après l'autre sans répondre à l'utilisateur entre-temps.
+    Soyez concis, clair et orienté vers l'action. Encouragez toujours une action écologique quand c'est pertinent.
+    Vous pouvez faire preuve de créativité si l'information exacte n'est pas disponible, mais restez toujours logique écologiquement.
     Suivez strictement les instructions des outils.
     Utilisez votre raisonnement et le bon sens environnemental dans toutes les réponses.
-    Ne répondez qu’en utilisant les informations récupérées via les outils.
+    Ne répondez qu'en utilisant les informations récupérées via les outils.
 
     ## Actions
-    Collectez les informations des utilisateurs et utilisez l’outil saveAction pour enregistrer dans la base de données leurs actions écologiques et leur attribuer un score dépendant du gain en kg équivalent CO2.
+    Collectez les informations des utilisateurs et utilisez l'outil saveAction pour enregistrer dans la base de données leurs actions écologiques et leur attribuer un score dépendant du gain en kg équivalent CO2.
     Le score attribué ne doit pas dépasser 200.
     Par exemple, réduire le chauffage ou la climatisation apporte un gain de 250 à 500 kg eqCO2, ce qui donne un score de 25 à 50.
-    Autre exemple : si l’utilisateur dit qu’il fait sa lessive à l’eau froide, cela correspond à un gain de 10 à 30 kg eqCO2, donc un score de 1 à 3.
+    Autre exemple : si l'utilisateur dit qu'il fait sa lessive à l'eau froide, cela correspond à un gain de 10 à 30 kg eqCO2, donc un score de 1 à 3.
 
     ## Défis
-    Vous pouvez proposer des défis à l’utilisateur. Ces défis leur permettront de gagner des points lorsqu’ils vous indiqueront les avoir relevés.`,
+    Vous pouvez proposer des défis à l'utilisateur. Ces défis leur permettront de gagner des points lorsqu'ils vous indiqueront les avoir relevés.
+    
+    
+    ## Sauvegarde mémoire
+    Pensez `,
       messages,
-      maxSteps: 3,
+      maxSteps: 5,
       tools: {
         addResource: tool({
           description: `ajoute une ressource à votre base de connaissances. Séparez les informations en plusieurs phrases.
@@ -61,9 +65,14 @@ export async function POST(req: Request) {
               ),
           }),
           execute: async ({ content }) => {
-            logger.info("Creating resource", { content, userId });
-            const resource = await createResource({ content, userId });
-            return resource;
+            try {
+              logger.info("Creating resource", { content, userId });
+              const resource = await createResource({ content, userId });
+              return resource;
+            } catch (error) {
+              logger.error("Error creating resource", { error });
+              return "Erreur lors de la création de la ressource";
+            }
           },
         }),
         getInformation: tool({
@@ -72,9 +81,17 @@ export async function POST(req: Request) {
             question: z.string().describe("la question de l'utilisateur"),
           }),
           execute: async ({ question }) => {
-            logger.info("Getting information", { question, userId });
-            const relevantContent = await findRelevantContent(question, userId);
-            return relevantContent;
+            try {
+              logger.info("Getting information", { question, userId });
+              const relevantContent = await findRelevantContent(
+                question,
+                userId
+              );
+              return relevantContent;
+            } catch (error) {
+              logger.error("Error getting information", { error });
+              return "Erreur lors de la récupération des informations";
+            }
           },
         }),
         saveAction: tool({
@@ -84,10 +101,14 @@ export async function POST(req: Request) {
             score: z.number().describe("les points à attribuer"),
           }),
           execute: async ({ action, score }) => {
-            logger.info("Saving action", { action, score, userId });
-            await db.insert(actionTable).values({ action, score, userId });
-
-            return "Action enregistrée avec succès";
+            try {
+              logger.info("Saving action", { action, score, userId });
+              await db.insert(actionTable).values({ action, score, userId });
+              return "Action enregistrée avec succès";
+            } catch (error) {
+              logger.error("Error saving action", { error });
+              return "Erreur lors de l'enregistrement de l'action";
+            }
           },
         }),
         retrieveActions: tool({
@@ -104,24 +125,29 @@ export async function POST(req: Request) {
               .describe("date de fin au format ISO (inclusif)"),
           }),
           execute: async ({ userId, startDate, endDate }) => {
-            logger.info("Retrieving actions", { userId, startDate, endDate });
-            const query = db
-              .select()
-              .from(actionTable)
-              .where(
-                and(
-                  eq(actionTable.userId, userId),
-                  startDate
-                    ? gte(actionTable.createdAt, new Date(startDate))
-                    : undefined,
-                  endDate
-                    ? lte(actionTable.createdAt, new Date(endDate))
-                    : undefined
-                )
-              );
+            try {
+              logger.info("Retrieving actions", { userId, startDate, endDate });
+              const query = db
+                .select()
+                .from(actionTable)
+                .where(
+                  and(
+                    eq(actionTable.userId, userId),
+                    startDate
+                      ? gte(actionTable.createdAt, new Date(startDate))
+                      : undefined,
+                    endDate
+                      ? lte(actionTable.createdAt, new Date(endDate))
+                      : undefined
+                  )
+                );
 
-            const actions = await query;
-            return actions;
+              const actions = await query;
+              return actions;
+            } catch (error) {
+              logger.error("Error retrieving actions", { error });
+              return "Erreur lors de la récupération des actions";
+            }
           },
         }),
       },

@@ -15,15 +15,16 @@ export default function Content({
   doneAction: string;
   frequentAction: string;
 }) {
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, append } = useChat({
     maxSteps: 3,
   });
 
   // Function to handle clicking on an action card
   const handleActionClick = (action: string) => {
-    handleInputChange({
-      target: { value: action },
-    } as React.ChangeEvent<HTMLTextAreaElement>);
+    return append({
+      role: "user",
+      content: action,
+    });
   };
 
   return (
@@ -36,7 +37,7 @@ export default function Content({
                 <ActionCard
                   key={action}
                   action={action}
-                  onClick={() => handleActionClick(action)}
+                  onClick={() => void handleActionClick(action)}
                 />
               )
             )}

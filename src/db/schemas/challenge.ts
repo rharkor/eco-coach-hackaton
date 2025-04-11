@@ -10,7 +10,7 @@ import {
 export const challengeKind = pgEnum("challenge_kind", ["daily", "other"]);
 
 export default pgTable("challenge", {
-  id: text("id").primaryKey(),
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
   userId: text("user_id").notNull(),
   name: text("name").notNull(),
   description: text("description").notNull(),
