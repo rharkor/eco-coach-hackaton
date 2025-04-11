@@ -10,6 +10,7 @@ import { createResource } from "@/lib/actions/resources";
 import { findRelevantContent } from "@/lib/ai/embedding";
 import { openai } from "@ai-sdk/openai";
 import { logger } from "@rharkor/logger";
+import { challengeTable } from "@/db/schemas/challenge";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -148,6 +149,29 @@ export async function POST(req: Request) {
               logger.error("Error retrieving actions", { error });
               return "Erreur lors de la récupération des actions";
             }
+          },
+        }),
+        saveChallenge: tool({
+          description: `enregistre un défi sur le profil de l'utilisateur.`,
+          parameters: z.object({
+            name: z.string().describe("le nom du défi"),
+            description: z.string().describe("la description du défi"),
+            score: z.number().describe("les points à attribuer"),
+          }),
+          execute: async ({ name, description, score }) => {
+            logger.info("Saving challenge", { name, description, score, userId });
+            await db.insert(challengeTable).values({ name, description, score, userId, hasBeenCompleted: false, kind: "other" });
+            return "Challenge enregistré avec succès";
+          },
+        }),
+        retrieveChallenges: tool({
+          description: `récupère les défis de l'utilisateur depuis la base de données.`,
+          parameters: z.object({ userId: z.string().describe("l'identifiant de l'utilisateur") }),
+          execute: async ({ userId }) => {
+            logger.info("Retrieving challenges", { userId });
+            const query = db.select().from(challengeTable).where(eq(challengeTable.userId, userId));
+            const challenges = await query;
+            return challenges;
           },
         }),
       },
