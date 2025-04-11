@@ -1,10 +1,14 @@
 import { ToolInvocation } from "ai";
 
 export default function ToolInvocations({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toolInvocations,
 }: {
   toolInvocations: ToolInvocation[];
 }) {
+  return null;
+
+  /*
   if (toolInvocations.length === 0) {
     return null;
   }
@@ -19,5 +23,5 @@ export default function ToolInvocations({
         </div>
       ))}
     </div>
-  );
+  );*/
 }

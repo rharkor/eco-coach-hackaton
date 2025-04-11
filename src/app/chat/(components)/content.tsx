@@ -19,6 +19,11 @@ export default function Content({
 }) {
   const { messages, input, handleInputChange, handleSubmit, append } = useChat({
     maxSteps: 3,
+    // initialMessages: Array.from({ length: 100 }, (_, i) => ({
+    //   role: "user",
+    //   content: "Salut",
+    //   id: `user-${i + 1}`,
+    // })),
   });
 
   // Function to handle clicking on an action card
@@ -31,7 +36,7 @@ export default function Content({
 
   return (
     <>
-      <div className="gap-4 flex flex-col">
+      <div className="gap-4 flex flex-col overflow-auto">
         {messages.length === 0 ? (
           <div className="space-y-4">
             {[doneAction, frequentAction, "Donne moi un nouveau défi"].map(
@@ -60,7 +65,7 @@ export default function Content({
               {m.content.length > 0 && (
                 <div
                   className={cn({
-                    "rounded-large p-2": m.role === "user",
+                    "rounded-lg p-2 px-3 bg-primary/20": m.role === "user",
                   })}
                 >
                   <MemoizedMarkdown id={m.id} content={m.content} />

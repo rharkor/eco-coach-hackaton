@@ -1,3 +1,7 @@
+import Link from "next/link";
+
+import { ChevronLeft } from "lucide-react";
+
 import Content from "./(components)/content";
 
 const frequentActions = [
@@ -13,7 +17,7 @@ const frequentActions = [
 const doneActions = [
   "🚲 J'ai pris le vélo aujourd'hui",
   "🍽️ J'ai mangé végétarien",
-  "🧴 J'ai évité le plastique à usage unique",
+  "🧴 J'ai évité le plastique à usage unique aujourd'hui",
   "🚿 J'ai pris une douche courte",
   "🛒 J'ai acheté en vrac",
 ];
@@ -27,16 +31,26 @@ const placeholders = [
 
 export default function Chat() {
   return (
-    <div className="flex flex-col size-full justify-between">
-      <Content
-        placeholder={
-          placeholders[Math.floor(Math.random() * placeholders.length)]
-        }
-        doneAction={doneActions[Math.floor(Math.random() * doneActions.length)]}
-        frequentAction={
-          frequentActions[Math.floor(Math.random() * frequentActions.length)]
-        }
-      />
+    <div className="flex flex-col gap-3 h-full">
+      <div className="relative flex justify-center items-center">
+        <Link className="absolute top-0 left-0" href="/">
+          <ChevronLeft />
+        </Link>
+        <p className="text-2xl font-bold text-center">EcoCoach</p>
+      </div>
+      <div className="flex flex-col size-full justify-between gap-3 min-h-0">
+        <Content
+          placeholder={
+            placeholders[Math.floor(Math.random() * placeholders.length)]
+          }
+          doneAction={
+            doneActions[Math.floor(Math.random() * doneActions.length)]
+          }
+          frequentAction={
+            frequentActions[Math.floor(Math.random() * frequentActions.length)]
+          }
+        />
+      </div>
     </div>
   );
 }

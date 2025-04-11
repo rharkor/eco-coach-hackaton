@@ -21,3 +21,22 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
   },
 });
+
+// Environment variables utility
+// Safely access environment variables on the server side
+
+export const getEnv = (key: string, defaultValue: string): string => {
+  // This module should only be imported in server components or API routes
+  // It will throw an error if used in client components
+  if (typeof process === "undefined" || typeof process.env === "undefined") {
+    throw new Error(
+      "Environment variables can only be accessed in server components or API routes"
+    );
+  }
+
+  return process.env[key] || defaultValue;
+};
+
+// Redis configuration
+export const REDIS_HOST = getEnv("REDIS_HOST", "localhost");
+export const REDIS_PORT = parseInt(getEnv("REDIS_PORT", "6379"), 10);

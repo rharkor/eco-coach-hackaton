@@ -19,7 +19,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={cn(GeistSans.className, "antialiased container px-3 py-8")}
+        className={cn(
+          GeistSans.className,
+          "antialiased container px-3 py-8 pb-3"
+        )}
       >
         {children}
       </body>

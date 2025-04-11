@@ -6,11 +6,11 @@ import { z } from "zod";
 
 import db from "@/db";
 import { actionTable } from "@/db/schemas/action";
+import { challengeTable } from "@/db/schemas/challenge";
 import { createResource } from "@/lib/actions/resources";
 import { findRelevantContent } from "@/lib/ai/embedding";
 import { openai } from "@ai-sdk/openai";
 import { logger } from "@rharkor/logger";
-import { challengeTable } from "@/db/schemas/challenge";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -27,7 +27,9 @@ export async function POST(req: Request) {
 
     const result = streamText({
       model: openai("gpt-4o"),
-      system: `Vous êtes un assistant intelligent spécialisé en écologie et en développement durable.
+      system: `
+      Langue: Français
+      Vous êtes un assistant intelligent spécialisé en écologie et en développement durable.
     Votre rôle est de sensibiliser aux enjeux environnementaux et d'encourager les utilisateurs à adopter des comportements éco-responsables.
     Adoptez toujours un ton amical, encourageant et bienveillant dans vos réponses.
     Utilisez les outils à chaque requête.
@@ -100,11 +102,22 @@ export async function POST(req: Request) {
           parameters: z.object({
             action: z.string().describe("l'action à enregistrer"),
             score: z.number().describe("les points à attribuer"),
+            kgCO2Saved: z.number().describe("le gain en kg eqCO2"),
           }),
-          execute: async ({ action, score }) => {
+          execute: async ({ action, score, kgCO2Saved }) => {
             try {
-              logger.info("Saving action", { action, score, userId });
-              await db.insert(actionTable).values({ action, score, userId });
+              logger.info("Saving action", {
+                action,
+                score,
+                kgCO2Saved,
+                userId,
+              });
+              await db.insert(actionTable).values({
+                action,
+                score,
+                userId,
+                kgCO2Saved,
+              });
               return "Action enregistrée avec succès";
             } catch (error) {
               logger.error("Error saving action", { error });
@@ -157,21 +170,70 @@ export async function POST(req: Request) {
             name: z.string().describe("le nom du défi"),
             description: z.string().describe("la description du défi"),
             score: z.number().describe("les points à attribuer"),
+            kgCO2Saved: z.number().describe("le gain en kg eqCO2"),
           }),
-          execute: async ({ name, description, score }) => {
-            logger.info("Saving challenge", { name, description, score, userId });
-            await db.insert(challengeTable).values({ name, description, score, userId, hasBeenCompleted: false, kind: "other" });
-            return "Challenge enregistré avec succès";
+          execute: async ({ name, description, score, kgCO2Saved }) => {
+            try {
+              logger.info("Saving challenge", {
+                name,
+                description,
+                score,
+                kgCO2Saved,
+                userId,
+              });
+              await db.insert(challengeTable).values({
+                name,
+                description,
+                score,
+                userId,
+                hasBeenCompleted: false,
+                kind: "other",
+                kgCO2Saved,
+              });
+              return "Challenge enregistré avec succès";
+            } catch (error) {
+              logger.error("Error saving challenge", { error });
+              return "Erreur lors de l'enregistrement du défi";
+            }
           },
         }),
         retrieveChallenges: tool({
           description: `récupère les défis de l'utilisateur depuis la base de données.`,
-          parameters: z.object({ userId: z.string().describe("l'identifiant de l'utilisateur") }),
+          parameters: z.object({
+            userId: z.string().describe("l'identifiant de l'utilisateur"),
+          }),
           execute: async ({ userId }) => {
-            logger.info("Retrieving challenges", { userId });
-            const query = db.select().from(challengeTable).where(eq(challengeTable.userId, userId));
-            const challenges = await query;
-            return challenges;
+            try {
+              logger.info("Retrieving challenges", { userId });
+              const query = db
+                .select()
+                .from(challengeTable)
+                .where(eq(challengeTable.userId, userId));
+              const challenges = await query;
+              return challenges;
+            } catch (error) {
+              logger.error("Error retrieving challenges", { error });
+              return "Erreur lors de la récupération des défis";
+            }
+          },
+        }),
+        completeChallenge: tool({
+          description: `marque un défi comme terminé.`,
+          parameters: z.object({
+            challengeId: z.number().describe("l'identifiant du défi"),
+          }),
+          execute: async ({ challengeId }) => {
+            try {
+              logger.info("Completing challenge", { challengeId, userId });
+              await db
+                .update(challengeTable)
+                .set({ hasBeenCompleted: true })
+                .where(eq(challengeTable.id, challengeId));
+              return "Défi marqué comme terminé avec succès";
+            } catch (error) {
+              logger.error("Error completing challenge", { error });
+              return "Erreur lors de la marque du défi comme terminé";
+            }
           },
         }),
       },
