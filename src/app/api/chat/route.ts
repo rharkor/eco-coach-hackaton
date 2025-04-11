@@ -44,7 +44,7 @@ export async function POST(req: Request) {
 
     ## Actions
     Collectez les informations des utilisateurs et utilisez l'outil saveAction pour enregistrer dans la base de données leurs actions écologiques et leur attribuer un score dépendant du gain en kg équivalent CO2.
-    Le score attribué ne doit pas dépasser 200.
+    Le score attribué ne doit pas dépasser 200 et tu dois afficher le score que tu attribues à l'utilisateur.
     Par exemple, réduire le chauffage ou la climatisation apporte un gain de 250 à 500 kg eqCO2, ce qui donne un score de 25 à 50.
     Autre exemple : si l'utilisateur dit qu'il fait sa lessive à l'eau froide, cela correspond à un gain de 10 à 30 kg eqCO2, donc un score de 1 à 3.
 
